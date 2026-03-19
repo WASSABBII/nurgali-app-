@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sayat App</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
+        input { padding: 10px; }
+        button { padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Моя база данных Redis</h1>
+    <input type="text" id="itemName" placeholder="Введите название...">
+    <button onclick="addItem()">Добавить</button>
+    
+    <div id="list">
+        <h3>Список в базе:</h3>
+        <ul id="itemsUl"></ul>
+    </div>
+
+    <script>
+        // Функция для загрузки данных с твоего API
+        async function loadData() {
+            const res = await fetch('/api/data');
+            const data = await res.json();
+            const ul = document.getElementById('itemsUl');
+            ul.innerHTML = '';
+            data.items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                ul.appendChild(li);
+            });
+        }
+
+        // Функция для отправки данных в API
+        async function addItem() {
+            const name = document.getElementById('itemName').value;
+            await fetch(`/api/add?name=${name}`, { method: 'POST' });
+            loadData(); // Обновляем список
+        }
+
+        loadData(); // Грузим данные при открытии страницы
+    </script>
+</body>
+</html> 

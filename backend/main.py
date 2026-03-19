@@ -1,22 +1,30 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import redis
 import os
 
 app = FastAPI()
 
-# Подключаемся к Redis через переменную окружения, которую даст Railway
+# РАЗРЕШАЕМ ФРОНТЕНДУ ДОСТУП
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # В реальном проекте тут будет адрес твоего сайта
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 r = redis.from_url(REDIS_URL)
 
-@app.get("/")
-def read_root():
-    return {"status": "success", "message": "Это мой новый проект Sayat-App!"}
+@app.get("/api/data")
+def get_data():
+    # Просто отдаем список ключей из базы
+    keys = r.keys("*")
+    items = [k.decode() for k in keys]
+    return {"items": items, "count": len(items)}
 
-@app.get("/items")
-def read_items():
-    # Просто пример: берем данные из Redis
-    try:
-        keys = r.keys("*")
-        return {"total_keys": len(keys), "keys": [k.decode() for k in keys]}
-    except:
-        return {"error": "База пока недоступна"} 
+@app.post("/api/add")
+def add_item(name: str):
+    # Добавляем данные в базу
+    r.set(name, "added_by_user")
+    return {"message": f"Элемент {name} добавлен!"}
