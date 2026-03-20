@@ -13,7 +13,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+# Было: REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+# Стало:
+REDIS_URL = os.getenv("REDIS_URL", "redis://db:6379")
 r = redis.from_url(REDIS_URL)
 
 @app.get("/api/data")
