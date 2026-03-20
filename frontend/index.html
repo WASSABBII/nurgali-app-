@@ -1,27 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Sayat App</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding-top: 50px; }
-        input { padding: 10px; }
-        button { padding: 10px; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <h1>Моя база данных Redis</h1>
-    <input type="text" id="itemName" placeholder="Введите название...">
-    <button onclick="addItem()">Добавить</button>
-    
-    <div id="list">
-        <h3>Список в базе:</h3>
-        <ul id="itemsUl"></ul>
-    </div>
+<script>
+    // 1. УКАЖИ ЗДЕСЬ СВОЮ ССЫЛКУ ИЗ RAILWAY (которую сгенерировал для бэкенда)
+    const BACKEND_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:8080' 
+        : 'https://backend-production.up.railway.app'; // <--- ЗАМЕНИ НА СВОЮ ССЫЛКУ
 
-    <script>
-        // Функция для загрузки данных с твоего API
-        async function loadData() {
-            const res = await fetch('/api/data');
+    async function loadData() {
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/data`);
             const data = await res.json();
             const ul = document.getElementById('itemsUl');
             ul.innerHTML = '';
@@ -30,16 +15,25 @@
                 li.textContent = item;
                 ul.appendChild(li);
             });
+        } catch (e) {
+            console.error("Ошибка загрузки данных:", e);
         }
+    }
 
-        // Функция для отправки данных в API
-        async function addItem() {
-            const name = document.getElementById('itemName').value;
-            await fetch(`/api/add?name=${name}`, { method: 'POST' });
-            loadData(); // Обновляем список
+    async function addItem() {
+        const name = document.getElementById('itemName').value;
+        if (!name) return;
+        
+        try {
+            await fetch(`${BACKEND_URL}/api/add?name=${encodeURIComponent(name)}`, { 
+                method: 'POST' 
+            });
+            document.getElementById('itemName').value = '';
+            loadData();
+        } catch (e) {
+            console.error("Ошибка при добавлении:", e);
         }
+    }
 
-        loadData(); // Грузим данные при открытии страницы
-    </script>
-</body>
-</html> 
+    loadData();
+</script> 
