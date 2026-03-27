@@ -1,39 +1,41 @@
-<script>
-    // 1. УКАЖИ ЗДЕСЬ СВОЮ ССЫЛКУ ИЗ RAILWAY (которую сгенерировал для бэкенда)
-    const BACKEND_URL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8080' 
-        :  nurgali-app-production.up.railway.app
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nurgali Cloud App</title>
+</head>
+<body>
+    <h1>Управление Redis</h1>
+    
+    <input type="text" id="itemName" placeholder="Введите имя">
+    <button onclick="addItem()">Добавить в базу</button>
 
-    async function loadData() {
-        try {
-            const res = await fetch(`${BACKEND_URL}/api/data`);
-            const data = await res.json();
-            const ul = document.getElementById('itemsUl');
-            ul.innerHTML = '';
+    <hr>
+    <button onclick="loadData()">Обновить список</button>
+    <ul id="list"></ul>
+
+    <script>
+        // ЗАМЕНИ ЭТУ ССЫЛКУ на свой адрес из Railway!
+        const API_URL = "https://nurgali-app-production.up.railway.app";
+
+        async function addItem() {
+            const name = document.getElementById('itemName').value;
+            // Отправляем данные на бэкенд
+            await fetch(`${API_URL}/api/add?name=${name}`, { method: 'POST' });
+            alert("Добавлено!");
+            loadData();
+        }
+
+        async function loadData() {
+            const response = await fetch(`${API_URL}/api/data`);
+            const data = await response.json();
+            const list = document.getElementById('list');
+            list.innerHTML = "";
             data.items.forEach(item => {
                 const li = document.createElement('li');
                 li.textContent = item;
-                ul.appendChild(li);
+                list.appendChild(li);
             });
-        } catch (e) {
-            console.error("Ошибка загрузки данных:", e);
         }
-    }
-
-    async function addItem() {
-        const name = document.getElementById('itemName').value;
-        if (!name) return;
-        
-        try {
-            await fetch(`${BACKEND_URL}/api/add?name=${encodeURIComponent(name)}`, { 
-                method: 'POST' 
-            });
-            document.getElementById('itemName').value = '';
-            loadData();
-        } catch (e) {
-            console.error("Ошибка при добавлении:", e);
-        }
-    }
-
-    loadData();
-</script> 
+    </script>
+</body>
+</html>  
