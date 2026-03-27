@@ -8,29 +8,34 @@ app = FastAPI()
 # РАЗРЕШАЕМ ФРОНТЕНДУ ДОСТУП
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # В реальном проекте тут будет адрес твоего сайта
+    allow_origins=["*"], 
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Было: REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-# Стало:
-REDIS_URL = os.getenv("REDIS_URL", "redis://db:6379")
+# СОВЕТ DEVOPS: Сначала ищем переменную Railway, 
+# если её нет — пробуем докер-имя 'db', если и его нет — 'localhost'
+REDIS_URL = os.getenv("REDIS_URL", os.getenv("DATABASE_URL", "redis://localhost:6379"))
 r = redis.from_url(REDIS_URL)
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "message": "Nurgali, system is up!"}
+    try:
+        r.ping() # Проверяем реальную связь с базой
+        return {"status": "ok", "database": "connected", "user": "Nurgali"}
+    except Exception as e:
+        return {"status": "error", "database": "disconnected", "details": str(e)}
 
 @app.get("/api/data")
 def get_data():
-    # Просто отдаем список ключей из базы
+    # Получаем все ключи
     keys = r.keys("*")
+    # Декодируем их из байтов в обычный текст
     items = [k.decode() for k in keys]
     return {"items": items, "count": len(items)}
 
 @app.post("/api/add")
 def add_item(name: str):
-    # Добавляем данные в базу
-    r.set(name, "added_by_user")
-    return {"message": f"Элемент {name} добавлен!"}
+    # Сохраняем в Redis: Ключ — имя, Значение — дата/время или просто текст
+    r.set(name, "added_by_nurgali")
+    return {"message": f"Элемент {name} успешно добавлен в Redis!"}

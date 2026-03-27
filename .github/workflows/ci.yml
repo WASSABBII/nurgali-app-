@@ -8,6 +8,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Build Check
-        run: docker compose build 
+        run: docker compose build
+
+      # Добавим запуск и проверку (опционально, когда будешь готов)
+      - name: Test Infrastructure
+        run: |
+          docker compose up -d
+          sleep 5
+          # Проверяем, что наш health-эндпоинт отвечает 200 OK
+          curl -f http://localhost:8000/health || exit 1
+          docker compose down 
 
