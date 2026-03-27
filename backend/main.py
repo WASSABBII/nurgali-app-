@@ -18,6 +18,10 @@ app.add_middleware(
 REDIS_URL = os.getenv("REDIS_URL", "redis://db:6379")
 r = redis.from_url(REDIS_URL)
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "message": "Nurgali, system is up!"}
+
 @app.get("/api/data")
 def get_data():
     # Просто отдаем список ключей из базы
