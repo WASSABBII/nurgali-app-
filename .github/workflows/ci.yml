@@ -15,9 +15,7 @@ jobs:
       # Добавим запуск и проверку (опционально, когда будешь готов)
       - name: Test Infrastructure
         run: |
-          docker compose up -d
+          # Даем контейнерам 10 секунд, чтобы они успели запуститься
           sleep 10
-          # Проверяем, что наш health-эндпоинт отвечает 200 OK
-          curl -f http://localhost:8080/health || exit 1
-          docker compose down 
+          curl -f http://localhost:8080/health || exit 1 
 
