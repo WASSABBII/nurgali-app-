@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import redis
 import os
+import requests
+
 from fastapi import Request
 app = FastAPI()
 
@@ -33,6 +35,28 @@ def get_data():
     # Декодируем их из байтов в обычный текст
     items = [k.decode() for k in keys]
     return {"items": items, "count": len(items)}
+
+@app.post("/api/add")
+async def add_item(name: str, request: Request):
+    # Получаем IP
+    raw_ip = request.headers.get("X-Forwarded-For", request.client.host)
+    real_ip = raw_ip.split(",")[0].strip() # Берем самый первый IP в списке
+    
+    # Запрашиваем данные о регионе (бесплатный сервис)
+    region_info = "Unknown"
+    try:
+        response = requests.get(f"http://ip-api.com/json/{real_ip}")
+        data = response.json()
+        if data['status'] == 'success':
+            region_info = f"{data['country']}, {data['city']}"
+    except:
+        pass
+
+    print(f"Запись от: {name} | IP: {real_ip} | Регион: {region_info}")
+    
+    # Сохраняем в Redis сразу с регионом
+    r.set(name, f"{name} ({region_info})")
+    return {"status": "ok", "location": region_info}
 
 
 @app.post("/api/add")
