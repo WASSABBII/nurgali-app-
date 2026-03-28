@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import redis
 import os
-
+from fastapi import Request
 app = FastAPI()
 
 # РАЗРЕШАЕМ ФРОНТЕНДУ ДОСТУП
@@ -33,6 +33,23 @@ def get_data():
     # Декодируем их из байтов в обычный текст
     items = [k.decode() for k in keys]
     return {"items": items, "count": len(items)}
+
+
+@app.post("/api/add")
+async def add_item(name: str, request: Request):
+    # Railway передает реальный IP в этом заголовке
+    real_ip = request.headers.get("X-Forwarded-For")
+    
+    # Если заголовка нет (например, тестируешь локально), берем обычный адрес
+    if not real_ip:
+        real_ip = request.client.host
+        
+    print(f"--- НОВАЯ ЗАПИСЬ ---")
+    print(f"Имя: {name}")
+    print(f"Реальный IP пользователя: {real_ip}")
+    
+    r.set(name, f"User: {name}, IP: {real_ip}")
+    return {"status": "ok", "your_ip": real_ip}
 
 @app.post("/api/add")
 def add_item(name: str):
