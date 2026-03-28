@@ -9,13 +9,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build Check
-        run: docker compose build
+      - name: Build and START
+        run: |
+          # Собираем и ЗАПУСКАЕМ в фоновом режиме (-d)
+          docker compose up -d 
 
-      # Добавим запуск и проверку (опционально, когда будешь готов)
       - name: Test Infrastructure
         run: |
-          # Даем контейнерам 10 секунд, чтобы они успели запуститься
-          sleep 10
-          curl -f http://localhost:8080/health || exit 1 
+          # Даем контейнерам время проснуться
+          sleep 15
+          # Смотрим логи, если что-то пойдет не так (поможет при отладке)
+          docker compose logs backend
+          # Теперь curl точно найдет запущенный сервер
+          curl -f http://localhost:8080/health || exit 1
+
 
